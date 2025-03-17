@@ -1,16 +1,23 @@
 import tensorflow as tf
 import os
 import warnings
-
-# Suppress TensorFlow warnings
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Hide TensorFlow logs
-warnings.filterwarnings("ignore", category=UserWarning)  # Hide model warnings
-
 from flask import Flask, request, jsonify
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import numpy as np
 import io
+# Suppress TensorFlow logs
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+# Limit TensorFlow memory usage
+physical_devices = tf.config.list_physical_devices('CPU')
+for device in physical_devices:
+    tf.config.experimental.set_memory_growth(device, True)
+
+
+# Suppress TensorFlow warnings
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Hide TensorFlow logs
+warnings.filterwarnings("ignore", category=UserWarning)  # Hide model warnings
 
 app = Flask(__name__)
 
