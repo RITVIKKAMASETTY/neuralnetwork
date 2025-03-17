@@ -6,15 +6,18 @@ from tensorflow.keras.preprocessing import image
 import numpy as np
 import io
 
-# Suppress TensorFlow logs for cleaner output
+# Force TensorFlow to use CPU only (Disables GPU)
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+# Suppress TensorFlow logs
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 app = Flask(__name__)
 
-# Load the model without compiling to avoid unnecessary warnings
+# Load the trained model (without compiling to avoid warnings)
 model = load_model('accident_detection_model.h5', compile=False)
 
-# Allowed file extensions
+# Allowed file types
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 def allowed_file(filename):
@@ -38,10 +41,12 @@ def predict():
             img_array = np.expand_dims(img_array, axis=0)
             img_array /= 255.0  # Normalize pixel values
 
-            # Make a prediction
+            # Make prediction
             prediction = model.predict(img_array)[0][0]
-            class_label = "Accident" if prediction < 0.99 else "Not Accident"
             probability = round((1 - prediction) * 100, 2) if prediction < 0.5 else round(prediction * 100, 2)
+
+            # If confidence is below 80%, classify as "Not Accident"
+            class_label = "Accident" if probability >= 80 else "Not Accident"
 
             return jsonify({
                 "result": class_label,
@@ -54,5 +59,5 @@ def predict():
     return jsonify({"error": "Invalid file type."}), 400
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))  # Render sets PORT dynamically
+    port = int(os.environ.get("PORT", 5001))  # Render sets PORT dynamically
     app.run(host="0.0.0.0", port=port, debug=False)
